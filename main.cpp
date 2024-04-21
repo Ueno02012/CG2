@@ -208,7 +208,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 
-
   //コマンドキューを生成する
   ID3D12CommandQueue* commandQueue = nullptr;
   D3D12_COMMAND_QUEUE_DESC commandQueueDesc{};
