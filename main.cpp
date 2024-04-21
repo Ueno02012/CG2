@@ -107,6 +107,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     nullptr);                //オプション
 
 
+
+
   //ウィンドウを表示する
   ShowWindow(hwnd, SW_SHOW);
   /*D3D12Deviceの生成*/
