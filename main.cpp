@@ -28,7 +28,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
   //標準のメッセージ処理を行う
   return DefWindowProc(hwnd, msg, wparam, lparam);
 }
-
 void Log(const std::string& message) {
   OutputDebugStringA(message.c_str());;
 }
@@ -73,7 +72,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   //ウィンドウプロシージャ
   wc.lpfnWndProc = WindowProc;
   //ウィンドウクラス名
-  wc.lpszClassName=L"CG2WindowClass";
+  wc.lpszClassName = L"CG2WindowClass";
   //インスタンスハンドル
   wc.hInstance = GetModuleHandle(nullptr);
   //カーソル
@@ -107,6 +106,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     wc.hInstance,            //インスタンスハンドル
     nullptr);                //オプション
 
+  //デバックレイヤー
 #ifdef _DEBUG
   ID3D12Debug1* debugController = nullptr;
 
@@ -117,6 +117,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     debugController->SetEnableGPUBasedValidation(TRUE);
   }
 #endif // _DEBUG
+
 
 
 
@@ -206,9 +207,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 #endif // _DEBUG
 
 
-
-
-
   //コマンドキューを生成する
   ID3D12CommandQueue* commandQueue = nullptr;
   D3D12_COMMAND_QUEUE_DESC commandQueueDesc{};
@@ -216,7 +214,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     IID_PPV_ARGS(&commandQueue));
   //コマンドキューの生成がうまくいかなかったので起動できない
   assert(SUCCEEDED(hr));
-
 
   //コマンドアロケーターを生成する
   ID3D12CommandAllocator* commandAllocator = nullptr;
@@ -265,7 +262,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   hr = swapChain->GetBuffer(1, IID_PPV_ARGS(&swapChainResources[1]));
   assert(SUCCEEDED(hr));
 
-  //RTVの設定(レンダーターゲットビュー)
+  //RTVの設定
   D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
   rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;//出力結果をSRGB2変換して書き込む
   rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;//2Dテクスチャとして読み込む
@@ -293,11 +290,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   hr = device->CreateFence(fenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
   assert(SUCCEEDED(hr));
 
-  // FenceのSignalを待つためのイベントを作成する
+  //FenceのSignalを待つためのイベントを作成する
   HANDLE fenceEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
   assert(fenceEvent != nullptr);
-
-
 
 
   /*メインループ*/
@@ -311,28 +306,25 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     }
     else {
       //ゲームの処理
-      
-      
-      
+
+
+
       //ここから書き込むバックバッファのインデックスを取得
       UINT backBufferIndex = swapChain->GetCurrentBackBufferIndex();
-
-
-      // TransitionBarrierの設定
+      //TransitionBarrierの設定
       D3D12_RESOURCE_BARRIER barrier{};
-      // 今回のバリアはTransion
+      //今回のバリアはTransition
       barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-      // Noneにしておく
+      //Noneにしておく
       barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-      // バリアを張る対象のリソース。現在のバックバッファに対して行う
+      //バリアを張る対象のリソース。現在のバックバッファに対して行う
       barrier.Transition.pResource = swapChainResources[backBufferIndex];
-      // 遷移前(現在)のResourceState
+      //遷移前のResourceState
       barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-      // 遷移後のResourceState
+      //遷移後のResourceState
       barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-      // TransitionBarrierを張る
+      //TransitionBarrierを張る
       commandList->ResourceBarrier(1, &barrier);
-
 
       //描画先のRTVを指定する
       commandList->OMSetRenderTargets(1, &rtvHandles[backBufferIndex], false, nullptr);
@@ -341,13 +333,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
       float clearColor[] = { 0.1f,0.25f,0.5f,1.0f };//青っぽい色。RGBAの順
       commandList->ClearRenderTargetView(rtvHandles[backBufferIndex], clearColor, 0, nullptr);
 
-      // 画面に描く処理はすべて終わり、画面に映すので、状態を遷移
-      // 今回はRenderTargetからPresentにする
+      //画面に描く処理はすべて終わり、画面に移すので、状態を遷移
+      //今回はRenderTargetからPresentにする
       barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-      barrier.Transition.StateAfter |= D3D12_RESOURCE_STATE_PRESENT;
-      // TransitionBarrierを張る
-      commandList->ResourceBarrier(1, &barrier);
+      barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
 
+      //TransitionBarrierを張る
+      commandList->ResourceBarrier(1, &barrier);
       //コマンドリストの内容を確定させる。全てのコマンドを積んでからCloseすること
       hr = commandList->Close();
       assert(SUCCEEDED(hr));
@@ -357,19 +349,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
       commandQueue->ExecuteCommandLists(1, commandLists);
       //GPUとOSに画面の交換を行うように通知する
       swapChain->Present(1, 0);
-
-      // Fenceの値の更新
+      //Fenceの値の更新
       fenceValue++;
-      // GPUがここまでたどり着いたときに、Fenceの値を指定した値に代入するようにSignalを送る
+      //GPUがここまでたどり着いたときに、Fenceの値に代入するようにSignalを送る
       commandQueue->Signal(fence, fenceValue);
-
-      // Fenceの値が指定したSignal値にたどり着いているか確認する
-      // GetCompletedValueの初期値葉Fence作成時に渡した初期値
+      //Fenceの値が指定したSignal値にたどり着いているか確認する
+      //GetCompletedValueの初期値はFence作成時に渡した初期値
       if (fence->GetCompletedValue() < fenceValue)
       {
-        // 指定したSignaにたどりついていないので、たどり着くまで待つようにイベントを設定する
+        //指定したSignalにたどりついていないので、たどり着くまで待つようにイベントを設定する
         fence->SetEventOnCompletion(fenceValue, fenceEvent);
-        // イベントを待つ
+        //イベントを待つ
         WaitForSingleObject(fenceEvent, INFINITE);
       }
 
