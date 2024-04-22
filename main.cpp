@@ -217,6 +217,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   //コマンドキューの生成がうまくいかなかったので起動できない
   assert(SUCCEEDED(hr));
 
+
   //コマンドアロケーターを生成する
   ID3D12CommandAllocator* commandAllocator = nullptr;
   hr = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator));
@@ -264,7 +265,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   hr = swapChain->GetBuffer(1, IID_PPV_ARGS(&swapChainResources[1]));
   assert(SUCCEEDED(hr));
 
-  //RTVの設定
+  //RTVの設定(レンダーターゲットビュー)
   D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
   rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;//出力結果をSRGB2変換して書き込む
   rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;//2Dテクスチャとして読み込む
@@ -331,8 +332,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
       barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
       // TransitionBarrierを張る
       commandList->ResourceBarrier(1, &barrier);
-
-
 
 
       //描画先のRTVを指定する
