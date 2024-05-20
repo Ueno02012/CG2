@@ -10,10 +10,6 @@
 
 
 
-
-
-
-
 //ウィンドウプロージャー
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
   //メッセージ二応じてゲーム固有の処理を行う
@@ -62,8 +58,6 @@ std::string ConvertString(const std::wstring& str) {
 
 
 
-
-
 //Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   OutputDebugStringA("Hello,Directx!\n");
@@ -92,7 +86,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   //クライアント領域を元に実際のサイズにwrcを変更してもらう
   AdjustWindowRect(&wrc, WS_OVERLAPPEDWINDOW, false);
 
-  //ウィンドウの生成
+  //=========================================//
+  //========== ウィンドウの生成 ===============//
+  //======================================-=//
   HWND hwnd = CreateWindow(
     wc.lpszClassName,        //利用するクラス名
     L"CG2",                  //タイトルバーの文字
@@ -106,7 +102,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     wc.hInstance,            //インスタンスハンドル
     nullptr);                //オプション
 
-  //デバックレイヤー
+
+  //=================================//
+  //========= デバックレイヤー =========//
+  //=================================//
 #ifdef _DEBUG
   ID3D12Debug1* debugController = nullptr;
 
@@ -130,10 +129,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   IDXGIFactory7* dxgiFactory = nullptr;
 
   //HRESULTはWindows系のエラーコードであり、
-//関数が成功したかどうかをSUCCEEDEDマクロで判定できる
+  //関数が成功したかどうかをSUCCEEDEDマクロで判定できる
   HRESULT hr = CreateDXGIFactory(IID_PPV_ARGS(&dxgiFactory));
   //初期化の根本的な部分でエラーが出た場合はプログラムが間違っているか、どうにもできない場合が
-//多いのでassertにしておく
+  //多いのでassertにしておく
   assert(SUCCEEDED(hr));
 
   //仕様するアダプター用の変数。最初にnullptrを入れておく
@@ -294,8 +293,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   HANDLE fenceEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
   assert(fenceEvent != nullptr);
 
+  //=================================//
+  //========== メインループ ===========//
+  //=================================//
 
-  /*メインループ*/
   MSG msg{};
   //ウィンドウの×ボタンが押されるまでループ
   while (msg.message != WM_QUIT) {
