@@ -150,12 +150,45 @@ IDxcBlob* CompileShader(
 
 }
 
-ID3D12Resource* CreateBufferResource(ID3D12Device* device, size_t sizeInBytes);
-
 
 ID3D12Resource* CreateBufferResource(ID3D12Device* device, size_t sizeInBytes)
 {
-  return nullptr;
+  //IDXGIのファクトリーの生成
+  IDXGIFactory7* dxgiFactory = nullptr;
+
+  HRESULT hr = CreateDXGIFactory(IID_PPV_ARGS(&dxgiFactory));
+
+  //========================================
+  //======= VertexResourceを生成する =======
+  //========================================
+
+  // 頂点リソース用のヒープの設定
+  D3D12_HEAP_PROPERTIES uploadHeapProperties{};
+  uploadHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;  // uploadHeapを使う
+
+  // 頂点リソース用のヒープの設定
+  D3D12_RESOURCE_DESC vertexResourceDesc{};
+
+  // バッファリソース。テクスチャーの場合はまた別の設定をする
+  vertexResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+  vertexResourceDesc.Width = sizeInBytes; //リソースのサイズ。
+
+  // バッファの場合はこれらは1にする決まり
+  vertexResourceDesc.Height = 1;
+  vertexResourceDesc.DepthOrArraySize = 1;
+  vertexResourceDesc.MipLevels = 1;
+  vertexResourceDesc.SampleDesc.Count = 1;
+
+  // バッファの場合はこれにする
+  vertexResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+
+  //実際に頂点リソースを作る
+  ID3D12Resource* Resource = nullptr;
+  hr = device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&Resource));
+  assert(SUCCEEDED(hr));
+  
+  return Resource;
 }
 
 
@@ -526,33 +559,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 //======= VertexResourceを生成する =======
 //========================================
 
-// 頂点リソース用のヒープの設定
-  D3D12_HEAP_PROPERTIES uploadHeapProperties{};
-  uploadHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;  // uploadHeapを使う
-
-  // 頂点リソース用のヒープの設定
-  D3D12_RESOURCE_DESC vertexResourceDesc{};
-
-  // バッファリソース。テクスチャーの場合はまた別の設定をする
-  vertexResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-  vertexResourceDesc.Width = sizeof(Vector4) * 3; //リソースのサイズ。
-
-  // バッファの場合はこれらは1にする決まり
-  vertexResourceDesc.Height = 1;
-  vertexResourceDesc.DepthOrArraySize = 1;
-  vertexResourceDesc.MipLevels = 1;
-  vertexResourceDesc.SampleDesc.Count = 1;
-
-  // バッファの場合はこれにする
-  vertexResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-
-
-  //実際に頂点リソースを作る
   ID3D12Resource* vertexResource = CreateBufferResource(device, sizeof(Vector4) * 3);
-  hr = device->CreateCommittedResource(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&vertexResource));
-  assert(SUCCEEDED(hr));
 
+  //マテリアル用のリソース
+  ID3D12Resource* materialResource = CreateBufferResource(device, sizeof(Vector4));
 
+  //マテリアル用にデータを書き込む
+  Vector4* materialData = nullptr;
+
+  //書き込むためのアドレスを取得
+  materialResource->Map(0, nullptr, reinterpret_cast<void**>(&materialData));
+
+  //今回は赤
+  *materialData = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
 
   //==============================================
   //========== VertexBufferViewを作成 ============
@@ -679,6 +698,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
       //形状を設定。PSOに設定しているものとはまた別。同じものを設定する
       commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+      //マテリアルのCBufferの場所を設定
+      commandList->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
+
       // 描画！
       commandList->DrawInstanced(3, 1, 0, 0);
 
@@ -740,6 +762,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   device->Release();
   useAdapter->Release();
   dxgiFactory->Release();
+  materialResource->Release();
+
 #ifdef _DEBUG
   debugController->Release();
 
