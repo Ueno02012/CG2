@@ -846,6 +846,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   CloseHandle(fenceEvent);
   fence->Release();
   rtvDescriptorHeap->Release();
+  srvDescriptorHeap->Release();
   swapChainResources[0]->Release();
   swapChainResources[1]->Release();
   swapChain->Release();
@@ -871,6 +872,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   rootSignature->Release();
   pixelShaderBlob->Release();
   verterShaderBlob->Release();
+  
 
   //リソースチェック
   IDXGIDebug1* debug;
