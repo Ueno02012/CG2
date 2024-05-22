@@ -24,7 +24,6 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 
 
 
-
 //ウィンドウプロージャー
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
   //メッセージに応じてゲーム固有の処理を行う
@@ -74,7 +73,6 @@ std::string ConvertString(const std::wstring& str) {
   WideCharToMultiByte(CP_UTF8, 0, str.data(), static_cast<int>(str.size()), result.data(), sizeNeeded, NULL, NULL);
   return result;
 }
-
 
 
 
@@ -610,7 +608,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
   //単位行列を書き込んでおく
   *wvpData = MakeIdentity();
-
 
 
 
