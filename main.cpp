@@ -8,6 +8,7 @@
 #include<dxgidebug.h>
 #include<dxcapi.h>
 #include"Vector4.h"
+#include "Matrix.h"
 #pragma comment(lib,"dxguid.lib")
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib,"dxgi.lib")
@@ -152,6 +153,7 @@ IDxcBlob* CompileShader(
 
 
 ID3D12Resource* CreateBufferResource(ID3D12Device* device, size_t sizeInBytes)
+
 {
   //IDXGIのファクトリーの生成
   IDXGIFactory7* dxgiFactory = nullptr;
@@ -380,11 +382,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   D3D12_ROOT_SIGNATURE_DESC decriptionRootSignature{};
   decriptionRootSignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
-  // RootParameterを作成。複数設定できるので配列。今回葉結果1つなので長さ1の配列
-  D3D12_ROOT_PARAMETER rootParameters[1] = {};
+  // RootParameterを作成。PixelShaderのMaterialとVertexShaderのTransform
+  D3D12_ROOT_PARAMETER rootParameters[2] = {};
   rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;  //CBVを使う
   rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;  //PixelShaderで使う
-  rootParameters[0].Descriptor.ShaderRegister = 0;  //レジスタ番号0とバインド
+  rootParameters[0].Descriptor.ShaderRegister = 0;  //レジスタ番号0を使う
+  rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV; //CBVを使う
+  rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX; //VertexShaderで使う
+  rootParameters[1].Descriptor.ShaderRegister = 0; //レジスタ番号を使う
   decriptionRootSignature.pParameters = rootParameters;  //ルートパラメータ配列へのポインタ
   decriptionRootSignature.NumParameters = _countof(rootParameters);  //配列の長さ
 
@@ -535,6 +540,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   graphicsPipelineStateDesc.BlendState = blendDesc;// BlendState
   graphicsPipelineStateDesc.RasterizerState = rasterizerDesc; //RasterizerState
 
+
+
   // 書き込むRTVの情報
   graphicsPipelineStateDesc.NumRenderTargets = 1;
   graphicsPipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
@@ -551,8 +558,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   ID3D12PipelineState* graphicsPipelineState = nullptr;
   hr = device->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&graphicsPipelineState));
   assert(SUCCEEDED(hr));
-
-
 
 
 //========================================
@@ -572,6 +577,25 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
   //今回は赤
   *materialData = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
+
+//==============================================================//
+//============ TransformationMatrix用のリソースを作成 =============//
+//==============================================================//
+
+// WVP用のリソースを作る。Matrix4x4 1つ分のサイズを用意する
+  ID3D12Resource* wvpResource = CreateBufferResource(device, sizeof(Matrix4x4));
+
+  //データを書き込む
+  Matrix4x4* wvpData = nullptr;
+
+  //書き込むためのアドレスを取得
+  wvpResource->Map(0, nullptr, reinterpret_cast<void**>(&wvpData));
+
+  //単位行列を書き込んでおく
+  *wvpData = MakeIdentity();
+
+
+
 
   //==============================================
   //========== VertexBufferViewを作成 ============
@@ -643,6 +667,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 
+
   /*メインループ*/
   MSG msg{};
   //ウィンドウの×ボタンが押されるまでループ
@@ -700,6 +725,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
       //マテリアルのCBufferの場所を設定
       commandList->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
+
+
+      //wvp用のCBufferの場所を設定
+      //これはRootParameter[1]に対してCBVの設定を行っている
+      commandList->SetGraphicsRootConstantBufferView(1, wvpResource->GetGPUVirtualAddress());
 
       // 描画！
       commandList->DrawInstanced(3, 1, 0, 0);
