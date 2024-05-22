@@ -7,8 +7,10 @@
 #include<cassert>
 #include<dxgidebug.h>
 #include<dxcapi.h>
+#include "Vector3.h"
 #include"Vector4.h"
 #include "Matrix.h"
+#include "Transform.h"
 #pragma comment(lib,"dxguid.lib")
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib,"dxgi.lib")
@@ -665,7 +667,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 
+  //Transform変数を作る
+  Transform transform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
+  Transform cameraTransform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,-5.0f} };
 
 
   /*メインループ*/
@@ -679,6 +684,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     }
     else {
       //ゲームの処理
+
+      transform.rotate.y += 0.03f;
+      Matrix4x4 worldMatrix = MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
+      Matrix4x4 cameraMatrix = MakeAffineMatrix(cameraTransform.scale, cameraTransform.rotate, cameraTransform.translate);
+      Matrix4x4 viewMatrix = Inverse(cameraMatrix);
+      Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(kClientWidth) / float(kClientHeight), 0.1f, 100.0f);
+      Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(viewMatrix, projectionMatrix));
+
+      *wvpData = worldViewProjectionMatrix;
+      
 
 
 
@@ -793,7 +808,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   useAdapter->Release();
   dxgiFactory->Release();
   materialResource->Release();
-
+  wvpResource->Release();
 #ifdef _DEBUG
   debugController->Release();
 
