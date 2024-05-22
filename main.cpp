@@ -468,8 +468,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 //======== ShaderをCompileする ===========
 //========================================
 
-  IDxcBlob* verterShaderBlob = CompileShader(L"Object3D.VS.hlsl", L"vs_6_0", dxcUtils, dxcCompiler, includeHandler);
-  assert(verterShaderBlob != nullptr);
+  IDxcBlob* vertexShaderBlob = CompileShader(L"Object3D.VS.hlsl", L"vs_6_0", dxcUtils, dxcCompiler, includeHandler);
+  assert(vertexShaderBlob != nullptr);
 
   IDxcBlob* pixelShaderBlob = CompileShader(L"Object3D.PS.hlsl", L"ps_6_0", dxcUtils, dxcCompiler, includeHandler);
   assert(pixelShaderBlob != nullptr);
@@ -484,7 +484,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipelineStateDesc{};
   graphicsPipelineStateDesc.pRootSignature = rootSignature;   // RootSignature
   graphicsPipelineStateDesc.InputLayout = inputLayoutDesc;    // InputLayout
-  graphicsPipelineStateDesc.VS = { verterShaderBlob->GetBufferPointer(),verterShaderBlob->GetBufferSize() };  // VertexShader
+  graphicsPipelineStateDesc.VS = { vertexShaderBlob->GetBufferPointer(),vertexShaderBlob->GetBufferSize() };  // VertexShader
   graphicsPipelineStateDesc.PS = { pixelShaderBlob->GetBufferPointer(),pixelShaderBlob->GetBufferSize() };    // PixelShader
   graphicsPipelineStateDesc.BlendState = blendDesc;// BlendState
   graphicsPipelineStateDesc.RasterizerState = rasterizerDesc; //RasterizerState
@@ -741,7 +741,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   }
   rootSignature->Release();
   pixelShaderBlob->Release();
-  verterShaderBlob->Release();
+  vertexShaderBlob->Release();
 
   //リソースチェック
   IDXGIDebug1* debug;
