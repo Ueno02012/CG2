@@ -727,7 +727,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
       //ImGuiの内部コマンドを生成する
       ImGui::Render();
 
-      //transform.rotate.y += 0.03f;
       Matrix4x4 worldMatrix = MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
       Matrix4x4 cameraMatrix = MakeAffineMatrix(cameraTransform.scale, cameraTransform.rotate, cameraTransform.translate);
       Matrix4x4 viewMatrix = Inverse(cameraMatrix);
