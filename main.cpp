@@ -11,6 +11,7 @@
 #include"Vector4.h"
 #include "Matrix.h"
 #include "Transform.h"
+
 #include "externals/imgui/imgui.h"
 #include "externals/imgui/imgui_impl_dx12.h"
 #include "externals/imgui/imgui_impl_win32.h"
@@ -22,7 +23,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 #pragma comment(lib,"dxcompiler.lib")
 
 
-
+static ImVec4 color_multipler(1, 1, 1, 1);
 
 //ウィンドウプロージャー
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
