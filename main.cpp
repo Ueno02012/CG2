@@ -23,7 +23,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 #pragma comment(lib,"dxcompiler.lib")
 
 
-static ImVec4 color_multipler(1, 1, 1, 1);
+
 
 //ウィンドウプロージャー
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
@@ -717,10 +717,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
       //開発用UIの処理
-      ImGui::ShowDemoWindow();
+      //ImGui::ShowDemoWindow();
+      ImGui::Begin("color");
+      ImGui::ColorEdit4("Color", reinterpret_cast<float*>(materialData));
+      ImGui::DragFloat3("Move", &transform.translate.x,0.01f);
 
+      ImGui::End();
 
-      transform.rotate.y += 0.03f;
+      //ImGuiの内部コマンドを生成する
+      ImGui::Render();
+
+      //transform.rotate.y += 0.03f;
       Matrix4x4 worldMatrix = MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
       Matrix4x4 cameraMatrix = MakeAffineMatrix(cameraTransform.scale, cameraTransform.rotate, cameraTransform.translate);
       Matrix4x4 viewMatrix = Inverse(cameraMatrix);
@@ -729,9 +736,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
       *wvpData = worldViewProjectionMatrix;
       
-      //ImGuiの内部コマンドを生成する
-      ImGui::Render();
-
 
       //ここから書き込むバックバッファのインデックスを取得
       UINT backBufferIndex = swapChain->GetCurrentBackBufferIndex();
@@ -870,7 +874,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   rootSignature->Release();
   pixelShaderBlob->Release();
   verterShaderBlob->Release();
-  
 
   //リソースチェック
   IDXGIDebug1* debug;
