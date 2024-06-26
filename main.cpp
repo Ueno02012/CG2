@@ -587,6 +587,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   hr = device->CreateRootSignature(0, signatureBlob->GetBufferPointer(), signatureBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
   assert(SUCCEEDED(hr));
 
+
   //=========================================
   //======== InputLayoutの設定を行う ==========
   //=========================================
