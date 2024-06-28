@@ -344,7 +344,23 @@ ID3D12Resource* CreateDepthStencilTextureResource(ID3D12Device* device,int32_t w
   depthClearValue.DepthStencil.Depth = 1.0f;// 1.0f(最大値)でクリア
   depthClearValue.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;// フォーマット。Resourceと合わせる
 
+
+  // Resourceの生成
+  ID3D12Resource* resource = nullptr;
+  HRESULT hr = device->CreateCommittedResource(
+    &heapProperties, //　Heapの設定
+    D3D12_HEAP_FLAG_NONE,// Heapの特殊な設定
+    &resourceDesc, // Resourceの設定
+    D3D12_RESOURCE_STATE_DEPTH_WRITE, // 深度値を書き込む状態にしておく
+    &depthClearValue, // Clear最適値
+    IID_PPV_ARGS(&resource)); // 作成するResourceポインタへのポインタ
+  assert(SUCCEEDED(hr));
+
+  return resource;
 }
+
+
+
 
 
 //Windowsアプリでのエントリーポイント(main関数)
@@ -393,6 +409,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
   //ウィンドウを表示する
   ShowWindow(hwnd, SW_SHOW);
+
+
+
+
+
 
   //デバックレイヤー
 #ifdef _DEBUG
@@ -659,6 +680,28 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   //SRV用のヒープでディスクリプタの数は128。SRVはShaderないで触れるものなので、ShaderVisibleはtrue
   ID3D12DescriptorHeap* srvDescriptorHeap = CreateDescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 128, true);
 
+  // DepthStencilTextureをウィンドウサイズで作成
+  ID3D12Resource* depthStencilResource = CreateDepthStencilTextureResource(device, kClientWidth, kClientHeight);
+
+
+ //==========================================//
+//========= DepthStencilView(DSC) ==========//
+//==========================================//
+
+  // DSV用のヒープでディスクリプタの数は1。DSVはShaderないで触るものではないので、ShaderVisibleはfalse
+  ID3D12DescriptorHeap* dsvDescriptorHeap = CreateDescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1, false);
+
+  // DSVの設定
+  D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
+  dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT; // Format。基本的にはResourceに合わせる
+  dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D; //2DTexture
+
+  // DSCHeapの先頭にDSVを作る
+  device->CreateDepthStencilView(depthStencilResource, &dsvDesc, dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+
+  // 描画先のRTVとDSVを設定する
+  D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+
 
   //=============================//
   //======ShaderResourceView=====//
@@ -752,6 +795,26 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   
 
 
+  //=====================================================//
+  //=========== DepthStencilStateの設定を行う =============//
+  //=====================================================//
+
+  // DepthStencilStateの設定
+  D3D12_DEPTH_STENCIL_DESC depthStencilDesc{};
+
+  // Depthの機能を有効化する
+  depthStencilDesc.DepthEnable = true;
+
+  // 書き込みします
+  depthStencilDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+
+  // 比較関数はLessEqual。つまり、近ければ描画される
+  depthStencilDesc.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+
+  // DepthStencilの設定
+  
+
+
 
   //======================================
   //========== PSOを生成する =============
@@ -765,7 +828,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   graphicsPipelineStateDesc.BlendState = blendDesc;// BlendState
   graphicsPipelineStateDesc.RasterizerState = rasterizerDesc; //RasterizerState
 
-
+  // DepthStencilの設定
+  graphicsPipelineStateDesc.DepthStencilState = depthStencilDesc;
+  graphicsPipelineStateDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
 
   // 書き込むRTVの情報
   graphicsPipelineStateDesc.NumRenderTargets = 1;
@@ -865,7 +930,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
   //左下2
-  vertexData[3].position = { -0.5f,-0.5f,1.0f };
+  vertexData[3].position = { -0.5f,-0.5f,0.5f,1.0f };
   vertexData[3].texcoord = { 0.0f,0.0f };
 
   //上2
@@ -985,8 +1050,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
       //TransitionBarrierを張る
       commandList->ResourceBarrier(1, &barrier);
 
+
+      // 指定した深度で画面全体をクリアする
+      commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+
       //描画先のRTVを指定する
-      commandList->OMSetRenderTargets(1, &rtvHandles[backBufferIndex], false, nullptr);
+      commandList->OMSetRenderTargets(1, &rtvHandles[backBufferIndex], false,&dsvHandle);
+
 
       //指定した色で画面全体をクリアする
       float clearColor[] = { 0.1f,0.25f,0.5f,1.0f };//青っぽい色。RGBAの順
@@ -1112,6 +1182,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   pixelShaderBlob->Release();
   verterShaderBlob->Release();
   textureResource->Release();
+  depthStencilResource->Release();
+  dsvDescriptorHeap->Release();
   //リソースチェック
   IDXGIDebug1* debug;
   if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&debug)))) {
