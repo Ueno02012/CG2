@@ -318,11 +318,33 @@ void UploadTextureDate(ID3D12Resource* texture, const DirectX::ScratchImage& mip
 }
 
 
+//========================================//
+//======= DepthStencilTextureを作る =======//
+//========================================//
 
+ID3D12Resource* CreateDepthStencilTextureResource(ID3D12Device* device,int32_t width, int32_t height) {
 
+  // 生成するResourceの設定
+  D3D12_RESOURCE_DESC resourceDesc{};
+  resourceDesc.Width = width;// Textureの幅
+  resourceDesc.Height = height;// Textureの高さ
+  resourceDesc.MipLevels = 1;// mipmapの高さ
+  resourceDesc.DepthOrArraySize = 1;// 奥行き or 配列Textureの配列数
+  resourceDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;// DepthStencilとして利用可能なフォーマット
+  resourceDesc.SampleDesc.Count = 1;//サンプリングカウント。1固定
+  resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;// 2次元
+  resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;// DepthStencilとして通知
 
+  // 利用するHeapの設定
+  D3D12_HEAP_PROPERTIES heapProperties{};
+  heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;// VRAM上に作る
 
+  // 深度値のクリア設定
+  D3D12_CLEAR_VALUE depthClearValue{};
+  depthClearValue.DepthStencil.Depth = 1.0f;// 1.0f(最大値)でクリア
+  depthClearValue.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;// フォーマット。Resourceと合わせる
 
+}
 
 
 //Windowsアプリでのエントリーポイント(main関数)
@@ -931,8 +953,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
       ImGui::End();
 
+
       //ImGuiの内部コマンドを生成する
       ImGui::Render();
+
+      transform.rotate.y += 0.01f;
 
       Matrix4x4 worldMatrix = MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
       Matrix4x4 cameraMatrix = MakeAffineMatrix(cameraTransform.scale, cameraTransform.rotate, cameraTransform.translate);
