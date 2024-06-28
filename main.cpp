@@ -856,6 +856,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
   ID3D12Resource* vertexResource = CreateBufferResource(device, sizeof(VertexData) * 6);
 
+  // Sprite用の頂点リソースを作る
+  ID3D12Resource* vertexResourceSprite = CreateBufferResource(device, sizeof(VertexData) * 6);
+
   //マテリアル用のリソース
   ID3D12Resource* materialResource = CreateBufferResource(device, sizeof(VertexData));
 
@@ -868,23 +871,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   //今回は赤
   *materialData = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 
-//==============================================================//
-//============ TransformationMatrix用のリソースを作成 =============//
-//==============================================================//
-
-// WVP用のリソースを作る。Matrix4x4 1つ分のサイズを用意する
-  ID3D12Resource* wvpResource = CreateBufferResource(device, sizeof(Matrix4x4));
-
-  //データを書き込む
-  Matrix4x4* wvpData = nullptr;
-
-  //書き込むためのアドレスを取得
-  wvpResource->Map(0, nullptr, reinterpret_cast<void**>(&wvpData));
-
-  //単位行列を書き込んでおく
-  *wvpData = MakeIdentity();
-
-
 
   //==============================================
   //========== VertexBufferViewを作成 ============
@@ -893,15 +879,23 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   //頂点バッファビューを作成する
   D3D12_VERTEX_BUFFER_VIEW vertexBufferView{};
 
+  // Spriteの頂点バッファビューを作成する
+  D3D12_VERTEX_BUFFER_VIEW vertexBufferViewSprite{};
+
   // リソースの先頭のアドレスから使う
   vertexBufferView.BufferLocation = vertexResource->GetGPUVirtualAddress();
 
-  // 使用するリソースのサイズは3つ分のサイズ
+  vertexBufferViewSprite.BufferLocation = vertexResourceSprite->GetGPUVirtualAddress();
+
+  // 使用するリソースのサイズは6つ分のサイズ
   vertexBufferView.SizeInBytes = sizeof(VertexData) * 6;
+
+  vertexBufferViewSprite.SizeInBytes = sizeof(VertexData) * 6;
 
   // 1頂点当たりのサイズ
   vertexBufferView.StrideInBytes = sizeof(VertexData);
 
+  vertexBufferViewSprite.StrideInBytes = sizeof(VertexData);
 
 
   //==============================================
@@ -931,7 +925,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
   //左下2
   vertexData[3].position = { -0.5f,-0.5f,0.5f,1.0f };
-  vertexData[3].texcoord = { 0.0f,0.0f };
+  vertexData[3].texcoord = { 0.0f,1.0f };
 
   //上2
   vertexData[4].position = { 0.0f,0.0f,0.0f,1.0f };
@@ -941,6 +935,54 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   vertexData[5].position = { 0.5f,-0.5f,-0.5f,1.0f };
   vertexData[5].texcoord = { 1.0f,1.0f };
 
+
+  //===========================================================//
+  //=========== Spriteの頂点データを設定、三角形2枚とする ===========//
+  //===========================================================//
+
+  VertexData* vertexDataSprite = nullptr;
+  vertexResourceSprite->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSprite));
+
+  // 1枚目の三角形
+  vertexDataSprite[0].position = { 0.0f,360.0f,0.0f,1.0f };// 左下
+  vertexDataSprite[0].texcoord = { 0.0f,1.0f };
+  vertexDataSprite[1].position = { 0.0f,0.0f,0.0f,1.0f };// 左上
+  vertexDataSprite[1].texcoord = { 0.0f,0.0f };
+  vertexDataSprite[2].position = { 640.0f,360.0f,0.0f,1.0f };// 右上
+  vertexDataSprite[2].texcoord = { 1.0f,1.0f };
+
+  // 2枚目の三角形
+  vertexDataSprite[3].position = { 0.0f,0.0f,0.0f,1.0f };// 左上
+  vertexDataSprite[3].texcoord = { 0.0f,0.0f };
+  vertexDataSprite[4].position = { 640.0f,0.0f,0.0f,1.0f };// 右上
+  vertexDataSprite[4].texcoord = { 1.0f,0.0f };
+  vertexDataSprite[5].position = { 640.0f,360.0f,0.0f,1.0f };// 右下
+  vertexDataSprite[5].texcoord = { 1.0f,1.0f };
+
+ //==============================================================//
+//============ TransformationMatrix用のリソースを作成 =============//
+//==============================================================//
+
+// WVP用のリソースを作る。Matrix4x4 1つ分のサイズを用意する
+  ID3D12Resource* wvpResource = CreateBufferResource(device, sizeof(Matrix4x4));
+
+  // Sprite用のTransformationMatrix用のリソースを作る。Matrix4x4 1つ分のサイズを用意する
+  ID3D12Resource* transformationMatrixResourceSprite = CreateBufferResource(device, sizeof(Matrix4x4));
+
+  //データを書き込む
+  Matrix4x4* wvpData = nullptr;
+
+  Matrix4x4* transformationMatrixDataSprite = nullptr;
+
+  //書き込むためのアドレスを取得
+  wvpResource->Map(0, nullptr, reinterpret_cast<void**>(&wvpData));
+
+  transformationMatrixResourceSprite->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixDataSprite));
+
+  //単位行列を書き込んでおく
+  *wvpData = MakeIdentity();
+
+  *transformationMatrixDataSprite = MakeIdentity();
 
   //======================================
   //======== ViewportとScissor ===========
@@ -975,8 +1017,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
   Transform cameraTransform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,-5.0f} };
 
-
-
+  // CPUで動かす用のTransformを作る
+  Transform transformSprite{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
 
   //ImGuiの初期化。
@@ -1032,6 +1074,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
       *wvpData = worldViewProjectionMatrix;
       
+      Matrix4x4 worldMatrixSprite = MakeAffineMatrix(transformSprite.scale, transformSprite.rotate, transformSprite.translate);
+      Matrix4x4 viewMatrixSprite = MakeIdentity();
+      Matrix4x4 projectionMatrixSprite = MakeOrthographicMatrix(0.0f, 0.0f, float(kClientWidth), float(kClientHeight), 0.0f, 100.0f);
+      Matrix4x4 worldViewProjectionMatrixSprite = Multiply(worldMatrixSprite, Multiply(viewMatrixSprite, projectionMatrixSprite));
+      *transformationMatrixDataSprite = worldViewProjectionMatrixSprite;
+
 
       //ここから書き込むバックバッファのインデックスを取得
       UINT backBufferIndex = swapChain->GetCurrentBackBufferIndex();
@@ -1096,6 +1144,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
       // 描画！
       commandList->DrawInstanced(6, 1, 0, 0);
 
+      // Spriteの描画。変更が必要なものだけ変更する
+      commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite);
+
+      // TransformationMatrixCBufferの場所を指定
+      commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
+
+      commandList->DrawInstanced(6, 1, 0, 0);
 
       //実際のcommandListのImGuiのコマンドを積む
       ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
@@ -1166,6 +1221,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   dxgiFactory->Release();
   materialResource->Release();
   wvpResource->Release();
+  vertexResourceSprite->Release();
+  transformationMatrixResourceSprite->Release();
   
 #ifdef _DEBUG
   debugController->Release();

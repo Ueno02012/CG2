@@ -180,6 +180,19 @@ static Matrix4x4 MakeRotateZMatrix(float radian) {
   return result;
 }
 
+
+
+// 透視投影行列
+static Matrix4x4 MakePerspectiveFovMatrix(float fovY, float aspectRatio, float nearClip, float farClip) {
+  Matrix4x4 result{};
+  result.m[0][0] = 1.0f / aspectRatio * 1.0f / tanf(fovY / 2.0f);
+  result.m[1][1] = 1.0f / tanf(fovY / 2.0f);
+  result.m[2][2] = farClip / (farClip - nearClip);
+  result.m[2][3] = 1.0f;
+  result.m[3][2] = -farClip * nearClip / (farClip - nearClip);
+  return result;
+}
+
 // 平行移動行列
 static Matrix4x4 MakeTranslateMatrix(const Vector3& translate) {
   Matrix4x4 result{};
@@ -196,22 +209,6 @@ static Matrix4x4 MakeTranslateMatrix(const Vector3& translate) {
   result.m[3][0] = translate.x;
   result.m[3][1] = translate.y;
   result.m[3][2] = translate.z;
-  return result;
-}
-
-// 三次元アフィン変換行列
-static Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& radian, const Vector3& translate) {
-  return Multiply(MakeScaleMatrix(scale), Multiply(Multiply(MakeRotateXMatrix(radian.x), Multiply(MakeRotateYMatrix(radian.y), MakeRotateZMatrix(radian.z))), MakeTranslateMatrix(translate)));
-}
-
-// 透視投影行列
-static Matrix4x4 MakePerspectiveFovMatrix(float fovY, float aspectRatio, float nearClip, float farClip) {
-  Matrix4x4 result{};
-  result.m[0][0] = 1.0f / aspectRatio * 1.0f / tanf(fovY / 2.0f);
-  result.m[1][1] = 1.0f / tanf(fovY / 2.0f);
-  result.m[2][2] = farClip / (farClip - nearClip);
-  result.m[2][3] = 1.0f;
-  result.m[3][2] = -farClip * nearClip / (farClip - nearClip);
   return result;
 }
 
@@ -239,4 +236,8 @@ static Matrix4x4 MakeViewportMatrix(float left, float top, float width, float he
   result.m[3][2] = minDepth;
   result.m[3][3] = 1.0f;
   return result;
+}
+// 三次元アフィン変換行列
+static Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& radian, const Vector3& translate) {
+  return Multiply(MakeScaleMatrix(scale), Multiply(Multiply(MakeRotateXMatrix(radian.x), Multiply(MakeRotateYMatrix(radian.y), MakeRotateZMatrix(radian.z))), MakeTranslateMatrix(translate)));
 }
