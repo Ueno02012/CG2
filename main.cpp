@@ -363,8 +363,15 @@ ID3D12Resource* CreateDepthStencilTextureResource(ID3D12Device* device, int32_t 
 
   return resource;
 }
+//==================================
+// DescriptorHandleを関数化
+//==================================
 
-
+D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(ID3D12DescriptorHeap* descriptorHeap, uint32_t descriptorSize, uint32_t index) {
+  D3D12_CPU_DESCRIPTOR_HANDLE handleCPU = descriptorHeap->GetCPUDescriptorHandleForHeapStart();
+  handleCPU.ptr += (descriptorSize * index);
+  return handleCPU;
+}
 
 
 
@@ -708,6 +715,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 
 
+
+
+
+
   //=============================//
   //======ShaderResourceView=====//
   //=============================//
@@ -958,7 +969,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
       float u = float(lonIndex) / float(kSubdivision);
       float v = 1.0f - float(latIndex) / float(kSubdivision);
-      float lat = -0.5f * (float)M_PI + latIndex * kLatEvery;
+     // float lat = -0.5f * (float)M_PI + latIndex * kLatEvery;
       float nextLat = lat + kLatEvery;
 
       // 頂点にデータを入力する
@@ -1079,7 +1090,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   //Transform変数を作る
   Transform transform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
-  Transform cameraTransform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,-5.0f} };
+  Transform cameraTransform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,-10.0f} };
 
   // CPUで動かす用のTransformを作る
   Transform transformSprite{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
