@@ -36,7 +36,18 @@ struct Material {
   Vector4 color;
   int32_t enbleLighting;
 };
+struct TransformationMatrix {
+  Matrix4x4 WVP;
+  Matrix4x4 World;
+};
 
+struct DirectionalLight
+{
+  Vector4 color;
+  Vector3 direction;
+  float intensity;
+
+};
 
 const uint32_t kSubdivision = 16;							//分割数
 uint32_t vertexSphere = kSubdivision * kSubdivision * 6;
@@ -595,7 +606,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   decriptionRootSignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
   // RootParameterを作成。PixelShaderのMaterialとVertexShaderのTransform
-  D3D12_ROOT_PARAMETER rootParameters[3] = {};
+  D3D12_ROOT_PARAMETER rootParameters[4] = {};
   rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;  //CBVを使う
   rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;  //PixelShaderで使う
   rootParameters[0].Descriptor.ShaderRegister = 0;  //レジスタ番号0を使う
@@ -610,10 +621,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   rootParameters[2].DescriptorTable.pDescriptorRanges = descriptorRange;// Tableの中身の配列を指定
   rootParameters[2].DescriptorTable.NumDescriptorRanges = _countof(descriptorRange);// Tableで利用する数
 
+  rootParameters[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+  rootParameters[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+  rootParameters[3].Descriptor.ShaderRegister = 1;
 
 
   decriptionRootSignature.pParameters = rootParameters;  //ルートパラメータ配列へのポインタ
   decriptionRootSignature.NumParameters = _countof(rootParameters);  //配列の長さ
+
+
 
 
   //======================================//
@@ -933,6 +949,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   materialDataSprite->enbleLighting = false;
 
 
+  ID3D12Resource* lightResource = CreateBufferResource(device, sizeof(DirectionalLight));
+  DirectionalLight* directionalLightData = nullptr;
+
+  directionalLightData->color = { 1.0f,1.0f,1.0f,1.0f };
+  directionalLightData->direction = { 0.0f,-1.0f,0.0f };
+  directionalLightData->intensity = 1.0f;
+
 
   //==============================================
   //========== VertexBufferViewを作成 ============
@@ -1051,7 +1074,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
     }
   }
-
 
   //===========================================================//
   //=========== Spriteの頂点データを設定、三角形2枚とする ===========//
