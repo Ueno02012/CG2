@@ -1199,9 +1199,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
       ImGui_ImplWin32_NewFrame();
       ImGui::NewFrame();
 
-      //=======================
-      // DescriptorSize
-      //=======================
 
 
 
