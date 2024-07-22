@@ -1109,15 +1109,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
  //==============================================================//
 
  // WVP用のリソースを作る。Matrix4x4 1つ分のサイズを用意する
-  ID3D12Resource* wvpResource = CreateBufferResource(device, sizeof(Matrix4x4));
+  ID3D12Resource* wvpResource = CreateBufferResource(device, sizeof(TransformationMatrix));
 
   // Sprite用のTransformationMatrix用のリソースを作る。Matrix4x4 1つ分のサイズを用意する
-  ID3D12Resource* transformationMatrixResourceSprite = CreateBufferResource(device, sizeof(Matrix4x4));
+  ID3D12Resource* transformationMatrixResourceSprite = CreateBufferResource(device, sizeof(TransformationMatrix));
 
   //データを書き込む
-  Matrix4x4* wvpData = nullptr;
+  TransformationMatrix* wvpData = nullptr;
 
-  Matrix4x4* transformationMatrixDataSprite = nullptr;
+  TransformationMatrix* transformationMatrixDataSprite = nullptr;
 
 
   //書き込むためのアドレスを取得
@@ -1126,9 +1126,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   transformationMatrixResourceSprite->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixDataSprite));
 
   //単位行列を書き込んでおく
-  *wvpData = MakeIdentity();
+  wvpData->WVP = MakeIdentity();
+  wvpData->World = MakeIdentity();
 
-  *transformationMatrixDataSprite = MakeIdentity();
+  transformationMatrixDataSprite->WVP = MakeIdentity();
+  transformationMatrixDataSprite->World = MakeIdentity();
 
 
 
@@ -1225,13 +1227,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
       Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(kClientWidth) / float(kClientHeight), 0.1f, 100.0f);
       Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(viewMatrix, projectionMatrix));
 
-      *wvpData = worldViewProjectionMatrix;
+      wvpData->World = worldViewProjectionMatrix;
+      wvpData->WVP = worldViewProjectionMatrix;
 
       Matrix4x4 worldMatrixSprite = MakeAffineMatrix(transformSprite.scale, transformSprite.rotate, transformSprite.translate);
       Matrix4x4 viewMatrixSprite = MakeIdentity();
       Matrix4x4 projectionMatrixSprite = MakeOrthographicMatrix(0.0f, 0.0f, float(kClientWidth), float(kClientHeight), 0.0f, 100.0f);
       Matrix4x4 worldViewProjectionMatrixSprite = Multiply(worldMatrixSprite, Multiply(viewMatrixSprite, projectionMatrixSprite));
-      *transformationMatrixDataSprite = worldViewProjectionMatrixSprite;
+      transformationMatrixDataSprite->WVP = worldViewProjectionMatrixSprite;
+      transformationMatrixDataSprite->World = worldViewProjectionMatrixSprite;
 
 
       //ここから書き込むバックバッファのインデックスを取得
@@ -1280,12 +1284,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
       //wvp用のCBufferの場所を設定
       //これはRootParameter[1]に対してCBVの設定を行っている
       commandList->SetGraphicsRootConstantBufferView(1, wvpResource->GetGPUVirtualAddress());
+      commandList->SetGraphicsRootConstantBufferView(3, lightResource->GetGPUVirtualAddress());
+
       // SRVのDescriptorTableの先頭を設定。2はrootParameter[2]である
       commandList->SetGraphicsRootDescriptorTable(2, useMonsterBall ? textureSrvHandleGPU2 : textureSrvHandleGPU);
 
-      commandList->SetGraphicsRootConstantBufferView(3, lightResource->GetGPUVirtualAddress());
+
+
       // 描画！
-      commandList->DrawInstanced(6, 1, 0, 0);
+      commandList->DrawInstanced(1526, 1, 0, 0);
 
 
 
@@ -1298,7 +1305,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
       // TransformationMatrixCBufferの場所を指定
       commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
 
-      commandList->DrawInstanced(6, 1, 0, 0);
+      //commandList->DrawInstanced(6, 1, 0, 0);
 
       //実際のcommandListのImGuiのコマンドを積む
       ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
@@ -1352,6 +1359,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
   CloseHandle(fenceEvent);
   fence->Release();
+
   rtvDescriptorHeap->Release();
   srvDescriptorHeap->Release();
   swapChainResources[0]->Release();
@@ -1368,7 +1376,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   vertexResourceSprite->Release();
   transformationMatrixResourceSprite->Release();
   materialResourceSprite->Release();
-
+  lightResource->Release();
 #ifdef _DEBUG
   debugController->Release();
 
