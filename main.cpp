@@ -1290,7 +1290,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
       commandList->SetGraphicsRootDescriptorTable(2, useMonsterBall ? textureSrvHandleGPU2 : textureSrvHandleGPU);
 
 
-
+      
       // 描画！
       commandList->DrawInstanced(1526, 1, 0, 0);
 
@@ -1305,7 +1305,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
       // TransformationMatrixCBufferの場所を指定
       commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
 
-      //commandList->DrawInstanced(6, 1, 0, 0);
+      commandList->DrawInstanced(6, 1, 0, 0);
 
       //実際のcommandListのImGuiのコマンドを積む
       ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
