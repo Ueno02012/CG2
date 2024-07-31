@@ -1211,6 +1211,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
       ImGui::Begin("color");
       ImGui::ColorEdit4("Color", reinterpret_cast<float*>(materialData));
       ImGui::DragFloat3("Move", &transform.translate.x, 0.01f);
+      ImGui::DragFloat3("lightDirection", &directionalLightData->direction.x, 0.01f);
+      ImGui::DragFloat3("intensity", &directionalLightData->intensity, 0.01f);
       ImGui::Checkbox("useMonsterball", &useMonsterBall);
 
       ImGui::End();
@@ -1280,7 +1282,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
       //形状を設定。PSOに設定しているものとはまた別。同じものを設定する
       commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
       //マテリアルのCBufferの場所を設定
-      commandList->SetGraphicsRootConstantBufferView(0, materialResourceSprite->GetGPUVirtualAddress());
+      commandList->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
       //wvp用のCBufferの場所を設定
       //これはRootParameter[1]に対してCBVの設定を行っている
       commandList->SetGraphicsRootConstantBufferView(1, wvpResource->GetGPUVirtualAddress());
@@ -1305,7 +1307,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
       // TransformationMatrixCBufferの場所を指定
       commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
 
-      commandList->DrawInstanced(6, 1, 0, 0);
+      //commandList->DrawInstanced(6, 1, 0, 0);
 
       //実際のcommandListのImGuiのコマンドを積む
       ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
