@@ -1286,11 +1286,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
       //wvp用のCBufferの場所を設定
       //これはRootParameter[1]に対してCBVの設定を行っている
       commandList->SetGraphicsRootConstantBufferView(1, wvpResource->GetGPUVirtualAddress());
-      commandList->SetGraphicsRootConstantBufferView(3, lightResource->GetGPUVirtualAddress());
 
       // SRVのDescriptorTableの先頭を設定。2はrootParameter[2]である
       commandList->SetGraphicsRootDescriptorTable(2, useMonsterBall ? textureSrvHandleGPU2 : textureSrvHandleGPU);
 
+      // light
+      commandList->SetGraphicsRootConstantBufferView(3, lightResource->GetGPUVirtualAddress());
 
       
       // 描画！
@@ -1307,7 +1308,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
       // TransformationMatrixCBufferの場所を指定
       commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
 
-      //commandList->DrawInstanced(6, 1, 0, 0);
+      commandList->DrawInstanced(6, 1, 0, 0);
 
       //実際のcommandListのImGuiのコマンドを積む
       ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
