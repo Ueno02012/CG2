@@ -765,8 +765,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     // 頂点データをリソースにコピー
     std::memcpy(vertexData, modelDate.vertices.data(), sizeof(VertexData) * modelDate.vertices.size());
 
-    // 球の頂点にデータを入力
-   // DrawSphere(kSubdivision, vertexData);
 
     /*-------------------------------------------------------*/
     /*----------------------spriteのデータ---------------------*/
@@ -1072,7 +1070,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     scissorRect.top = 0;
     scissorRect.bottom = kClientHeight;
 
-    Transform transform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
+    Transform transform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{1.0f,-1.0f,0.0f} };
 
     Transform transformSprite{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
@@ -1111,19 +1109,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             ImGui::NewFrame();
 
             // 開発用UIの処理。実際に開発用のUIを出す場合はここをゲーム固有の処理に置き換える
-            ImGui::ShowDemoWindow();
 
             ImGui::Begin("Sprite");
             ImGui::DragFloat3("translate", &transform.translate.x, 0.01f);
             ImGui::DragFloat3("SphererRotateX", &transform.rotate.x,0.01f);
             ImGui::ColorEdit3("colorSprite", reinterpret_cast<float*>(materialSpriteDate));
-            ImGui::Checkbox("useMonsterBall", &useMonsterBall);
-            ImGui::DragFloat3("LightDirection", &directionalLightDate->direction.x, 0.01f);
+            //ImGui::Checkbox("useMonsterBall", &useMonsterBall);
+            ImGui::DragFloat("LightDirection", &directionalLightDate->direction.z, 0.01f);
             ImGui::DragFloat("LightIntensity", &directionalLightDate->intensity, 0.01f);
             ImGui::DragFloat3("SpriteTranslate", (&transformSprite.translate.x));
-            ImGui::DragFloat2("UVTranslate", &uvTransformSprite.translate.x, 0.01f, -10.0f, 10.0f);
-            ImGui::DragFloat2("UVScale", &uvTransformSprite.scale.x, 0.01f, -10.0f, 10.0f);
-            ImGui::SliderAngle ("UVRotate", &uvTransformSprite.rotate.z);
             ImGui::End();
 
             ImGui::Render();
@@ -1228,7 +1222,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             // TransformationMatrixBufferの場所を設定
             commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
             // 描画! (DrawCall/ドローコール) 6個のインデックスを使用し1つのインスタンスを描画、その他は当面０で良い
-           // commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
+            commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
 
             /*---------------------------------------------------*/
             /*-------------------2dの描画コマンド終了---------------*/
