@@ -4,6 +4,7 @@
 #include<format>
 #include<d3d12.h>
 #include<dxgi1_6.h>
+#include<wrl.h>
 #include<cassert>
 #include<dxgidebug.h>
 #include<dxcapi.h>
@@ -506,7 +507,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     /*D3D12Device生成*/
     ID3D12Device* device = nullptr;
     //IDXGIのファクトリー生成
-    IDXGIFactory7* dxgiFactory = nullptr;
+    Microsoft::WRL::ComPtr<IDXGIFactory7> dxgiFactory = nullptr;
     //HRESULTはWindows系のエラーコードであり、
   //関数が成功したかどうかをSUCCEEDEDマクロで判定できる
     HRESULT hr = CreateDXGIFactory(IID_PPV_ARGS(&dxgiFactory));
@@ -1114,7 +1115,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             ImGui::DragFloat3("translate", &transform.translate.x, 0.01f);
             ImGui::DragFloat3("SphererRotateX", &transform.rotate.x,0.01f);
             ImGui::ColorEdit3("colorSprite", reinterpret_cast<float*>(materialSpriteDate));
-            //ImGui::Checkbox("useMonsterBall", &useMonsterBall);
+            ImGui::DragFloat2("UVTranslate", &uvTransformSprite.translate.x, 0.01f, -10.0f, 10.0f);
+            ImGui::DragFloat2("UVScale", &uvTransformSprite.scale.x, 0.01f, -10.0f, 10.0f);
+            ImGui::SliderAngle("UVRotate", &uvTransformSprite.rotate.z);
             ImGui::DragFloat("LightDirection", &directionalLightDate->direction.z, 0.01f);
             ImGui::DragFloat("LightIntensity", &directionalLightDate->intensity, 0.01f);
             ImGui::DragFloat3("SpriteTranslate", (&transformSprite.translate.x));

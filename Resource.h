@@ -1,4 +1,5 @@
 #pragma once
+#include "ResourceObject.h"
 
 // Resourceの関数化
 ID3D12Resource* CreateBufferResource(ID3D12Device* device, size_t sizeInBytes) {
@@ -28,7 +29,6 @@ ID3D12Resource* CreateBufferResource(ID3D12Device* device, size_t sizeInBytes) {
     assert(SUCCEEDED(hr));
     return Resource;
 };
-
 
 //DirectX12のTextureResourceを作る
 ID3D12Resource* CreateTextureResource(ID3D12Device* device, const DirectX::TexMetadata& metadata)
@@ -61,7 +61,6 @@ ID3D12Resource* CreateTextureResource(ID3D12Device* device, const DirectX::TexMe
     assert(SUCCEEDED(hr));
     return resource;
 }
-
 
 ID3D12Resource* CreateDepthStencilTextureResource(ID3D12Device* device, int32_t width, int32_t heigth) {
     // 生成するResourceの設定
