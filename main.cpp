@@ -1111,13 +1111,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             // 開発用UIの処理。実際に開発用のUIを出す場合はここをゲーム固有の処理に置き換える
 
             ImGui::Begin("Sprite");
-            ImGui::DragFloat3("translate", &transform.translate.x, 0.01f);
-            ImGui::DragFloat3("SphererRotateX", &transform.rotate.x,0.01f);
+            ImGui::DragFloat3("axisObj : translate", &transform.translate.x, 0.01f);
+            ImGui::DragFloat3("axisObj : Rotate", &transform.rotate.x,0.01f);
+            ImGui::DragFloat3("axisObj : Scale", &transform.scale.x,0.01f);
             ImGui::ColorEdit3("colorSprite", reinterpret_cast<float*>(materialSpriteDate));
-            //ImGui::Checkbox("useMonsterBall", &useMonsterBall);
+            ImGui::DragFloat2("UVTranslate", &uvTransformSprite.translate.x, 0.01f, -10.0f, 10.0f);
+            ImGui::DragFloat2("UVScale", &uvTransformSprite.scale.x, 0.01f, -10.0f, 10.0f);
+            ImGui::SliderAngle("UVRotate", &uvTransformSprite.rotate.z);
             ImGui::DragFloat("LightDirection", &directionalLightDate->direction.z, 0.01f);
             ImGui::DragFloat("LightIntensity", &directionalLightDate->intensity, 0.01f);
             ImGui::DragFloat3("SpriteTranslate", (&transformSprite.translate.x));
+            ImGui::DragFloat3("SpriteRotate", (&transformSprite.rotate.x),0.01f);
+            ImGui::DragFloat3("SpriteScale", (&transformSprite.scale.x),0.01f);
             ImGui::End();
 
             ImGui::Render();
