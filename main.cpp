@@ -953,7 +953,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   directionalLightData->direction = { 0.0f,-1.0f,0.0f };
   directionalLightData->intensity = 1.0f;
 
-
+  
 
   //==============================================
   //========== VertexBufferViewを作成 ============
