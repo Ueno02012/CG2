@@ -950,7 +950,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   DirectionalLight* directionalLightData = nullptr;
   lightResource->Map(0, nullptr, reinterpret_cast<void**>(&directionalLightData));
   directionalLightData->color = { 1.0f,1.0f,1.0f,1.0f };
-  directionalLightData->direction = { 0.0f,-1.0f,0.0f };
+  directionalLightData->direction = { 0.0f,-1.0f,5.0f };
   directionalLightData->intensity = 1.0f;
 
   
