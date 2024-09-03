@@ -910,6 +910,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
         vertexDataSprite[i].normal = { 0.0f,0.0f,-1.0f };
     }
 
+
     ID3D12Resource* indexResourceSprite = CreateBufferResource(device, sizeof(uint32_t) * 6);
     //頂点バッファビューを作成する
     D3D12_INDEX_BUFFER_VIEW indexBufferViewSprite{};
