@@ -4,6 +4,7 @@ struct Material
 {
     float4 color;
     int endbleLighting;
+    float32_t4x4 uvTransform;
 };
 
 struct DirectionalLight
@@ -28,17 +29,20 @@ SamplerState gSampler : register(s0);
 PixeShaderOutput main(VertexShaderOutput input)
 {
     //TextureをSampling
-    float4 textureColor = gTexture.Sample(gSampler, input.texcoord);
+    float4 TransformesUV = mul(float4(input.texcoord, 0.0f, 1.0f), gMaterial.uvTransform);
+    float4 textureColor = gTexture.Sample(gSampler, TransformesUV.xy);
     
     PixeShaderOutput output;
     
-    if (gMaterial.endbleLighting != 0){ // Linhthingする場合
+    if (gMaterial.endbleLighting != 0)
+    { // Linhthingする場合
         // half lambert
         float Ndont = dot(normalize(input.normal), -gDirectionalLight.direction);
         float cos = pow(Ndont * 0.5f + 0.5f, 2.0f);
         output.color = gMaterial.color * textureColor * gDirectionalLight.color * cos * gDirectionalLight.intensity;
     }
-    else{ // Linhthingしない場合、前回までと同じ演算
+    else
+    { // Linhthingしない場合、前回までと同じ演算
         output.color = gMaterial.color * textureColor;
     }
     return output;
