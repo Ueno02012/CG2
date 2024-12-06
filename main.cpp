@@ -746,7 +746,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   uint32_t vertexCount = kSubdivision * kSubdivision * 6; //球の頂点数
 
   // モデル読み込み
-  ModelDate modelDate = LoadObjFile("resources", "axis.obj");
+  ModelDate modelDate = LoadObjFile("resources", "plane.obj");
 
   // 関数化したResouceで作成
   Microsoft::WRL::ComPtr <ID3D12Resource> vertexResoruce = CreateBufferResource(device, sizeof(VertexData) * modelDate.vertices.size());
@@ -1078,7 +1078,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   scissorRect.top = 0;
   scissorRect.bottom = kClientHeight;
 
-  Transform transform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
+  Transform transform{ {1.0f,1.0f,1.0f},{0.0f,3.0f,0.0f},{0.0f,0.0f,0.0f} };
 
   Transform transformSprite{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
