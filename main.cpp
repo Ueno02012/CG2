@@ -905,7 +905,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   //===== RasterizerStateの設定を行う ======//   
   D3D12_RASTERIZER_DESC rasterizerDesc{};
   //裏面(時計回り)を表示しない
-  rasterizerDesc.CullMode = D3D12_CULL_MODE_BACK;
+  rasterizerDesc.CullMode = D3D12_CULL_MODE_NONE;
   //三角形の中を塗りつぶす
   rasterizerDesc.FillMode = D3D12_FILL_MODE_SOLID;
 
@@ -1119,7 +1119,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   scissorRect.top = 0;
   scissorRect.bottom = kClientHeight;
 
-  Transform transform{ {1.0f,1.0f,1.0f},{0.0f,3.0f,0.0f},{0.0f,0.0f,0.0f} };
+  Transform transform{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
   Transform transformSprite{ {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
@@ -1169,10 +1169,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
       ImGui::ShowDemoWindow();
 
       ImGui::Begin("Sprite");
-      ImGui::DragFloat3("translate", &transform.translate.x, 0.01f);
-      ImGui::SliderAngle("SphererRotateX", &transform.rotate.x);
-      ImGui::SliderAngle("SphererRotateY", &transform.rotate.y);
-      ImGui::SliderAngle("SphererRotateZ", &transform.rotate.z);
+      ImGui::DragFloat3("translate", &cameratransform.translate.x, 0.01f);
+      ImGui::SliderAngle("SphererRotateX", &cameratransform.rotate.x);
+      ImGui::SliderAngle("SphererRotateY", &cameratransform.rotate.y,0.1f);
+      ImGui::SliderAngle("SphererRotateZ", &cameratransform.rotate.z);
       ImGui::ColorEdit3("colorSprite", reinterpret_cast<float*>(materialSpriteDate));
       ImGui::Checkbox("useMonsterBall", &useMonsterBall);
       ImGui::DragFloat3("LightDirection", &directionalLightDate->direction.x, 0.01f);
@@ -1271,7 +1271,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
       // マテリアルCBufferの場所を設定
       commandList->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
       // wvp用のCBufferの場所を設定
-      commandList->SetGraphicsRootConstantBufferView(1, wvpResource->GetGPUVirtualAddress());
+      //commandList->SetGraphicsRootConstantBufferView(1, wvpResource->GetGPUVirtualAddress());
       //SRVのDescriptortableの先頭を設定。２はrootParameter[2]である。
       //SRVを切り替えて画像を変えるS
       commandList->SetGraphicsRootDescriptorTable(2, useMonsterBall ? textureSrvHandleGPU2 : textureSrvHandleGPU);
@@ -1294,7 +1294,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
       // Spriteの描画。変更が必要なものだけ変更する
       commandList->SetGraphicsRootConstantBufferView(0, materialResourceSprite->GetGPUVirtualAddress());
       // TransformationMatrixBufferの場所を設定
-      commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
+      //commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
       // 描画! (DrawCall/ドローコール) 6個のインデックスを使用し1つのインスタンスを描画、その他は当面０で良い
      // commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
 
